@@ -13,6 +13,7 @@ export class UsersService {
     return this.repo.save(user);
   }
   findOne(id: number) {
+    if (!id) throw new NotFoundException('User not found!');
     return this.repo.findOneBy({ id });
   }
 

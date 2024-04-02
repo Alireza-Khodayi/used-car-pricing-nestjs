@@ -8,6 +8,10 @@ import {
   Param,
   Query,
   NotFoundException,
+  Session,
+  HttpCode,
+  Header,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -15,6 +19,9 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { UserDto } from './dtos/user.dto';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { User } from './user.entity';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Controller('auth')
 @Serialize(UserDto)
@@ -25,13 +32,39 @@ export class UsersController {
   ) {}
 
   @Post('/signup')
-  createUser(@Body() body: CreateUserDto) {
-    this.authService.signUp(body.email, body.password);
+  async createUser(@Body() body: CreateUserDto, @Session() session: any) {
+    const user = await this.authService.signUp(body.email, body.password);
+    session.userId = user.id;
+    return user;
   }
 
   @Post('/signin')
-  signin(@Body() body: CreateUserDto) {
-    return this.authService.signIn(body.email, body.password);
+  @HttpCode(200)
+  async signin(@Body() body: CreateUserDto, @Session() session: any) {
+    const user = await this.authService.signIn(body.email, body.password);
+    session.userId = user.id;
+    return user;
+  }
+
+  @Post('/signout')
+  @HttpCode(200)
+  @Header('Content-Type', 'application/json')
+  signOut(@Session() session: any) {
+    if (!session.userId) {
+      throw new NotFoundException('There is no user signed in!');
+    }
+    session.userId = null;
+    return JSON.stringify({
+      message: 'Signed out successfully!',
+      status: 'Success!',
+      statusCode: 200,
+    });
+  }
+
+  @Get('/me')
+  @UseGuards(AuthGuard)
+  getCurrentUser(@CurrentUser() user: User) {
+    return user;
   }
 
   @Get('/:id')
