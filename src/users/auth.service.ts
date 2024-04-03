@@ -45,7 +45,7 @@ export class AuthService {
     const hash = (await scrypt(password, salt, 32)) as Buffer;
 
     if (storedHash !== hash.toString('hex')) {
-      throw new BadRequestException('Invalid email or password!');
+      throw new BadRequestException('Invalid Email or Password!');
     }
 
     return user;
