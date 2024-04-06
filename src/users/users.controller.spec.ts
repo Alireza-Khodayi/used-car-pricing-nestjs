@@ -71,6 +71,16 @@ describe('UsersController', () => {
     await expect(controller.findUser('1')).rejects.toThrow(NotFoundException);
   });
 
+  it('signUp updates session object and returns user', async () => {
+    const session = { userId: -10 };
+    const user = await controller.createUser(
+      { email: 'asdf@asdf.com', password: 'asdf' },
+      session,
+    );
+
+    expect(session.userId).toEqual(user.id);
+  });
+
   it('signIn updates session object and returns user', async () => {
     const session = { userId: -10 };
     const user = await controller.signin(
