@@ -1,3 +1,4 @@
+import { Report } from 'src/reports/report.entity';
 import {
   Entity,
   AfterInsert,
